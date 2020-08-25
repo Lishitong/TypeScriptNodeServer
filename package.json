@@ -1,0 +1,28 @@
+{
+	"name": "typescriptnodeserver",
+	"version": "1.0.0",
+	"description": "node typescript koa",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Lishitong/TypeScriptNodeServer.git"
+	},
+	"dependencies": {
+		"koa": "^2.13.0",
+		"koa-router": "^9.1.0",
+		"koa-sslify": "^4.0.3",
+		"koa-static": "^5.0.0",
+		"mime": "^2.4.6"
+	},
+	"devDependencies": {},
+	"keywords": [],
+	"author": "lidalan",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Lishitong/TypeScriptNodeServer/issues"
+	},
+	"homepage": "https://github.com/Lishitong/TypeScriptNodeServer#readme"
+}
