@@ -2,9 +2,8 @@
 	"name": "typescript-node-server",
 	"version": "1.0.0",
 	"description": "node typescript koa",
-	"main": "index.js",
 	"scripts": {
-		"build": "npm run build-sass && npm run build-ts && npm run lint && npm run copy-static-assets",
+		"build": "npm run build-ts && npm run lint && npm run copy-static-assets",
 		"build-ts": "tsc",
 		"copy-static-assets": "ts-node copyStaticAssets.ts",
 		"debug": "npm run build && npm run watch-debug",
@@ -13,8 +12,8 @@
 		"serve-debug": "nodemon --inspect dist/server.js",
 		"start": "npm run serve",
 		"test": "jest --forceExit --coverage --verbose",
-		"watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run watch-node\"",
-		"watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\"",
+		"watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
+		"watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\"",
 		"watch-node": "nodemon dist/server.js",
 		"watch-test": "npm run test -- --watchAll",
 		"watch-ts": "tsc -w"
@@ -31,6 +30,7 @@
 		"mime": "^2.4.6"
 	},
 	"devDependencies": {
+		"concurrently": "^5.3.0",
 		"eslint": "^7.7.0",
 		"jest": "^26.4.2",
 		"ts-jest": "^26.2.0",
