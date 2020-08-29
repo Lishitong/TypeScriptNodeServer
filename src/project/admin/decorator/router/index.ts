@@ -2,13 +2,15 @@
  * @Author: lidalan
  * @Date: 2020-08-26 16:20:05
  * @LastEditors: lidalan
- * @LastEditTime: 2020-08-28 16:58:10
+ * @LastEditTime: 2020-08-29 15:01:00
  * @Description:
  * @FilePath: \TypeScriptNodeServer\src\project\admin\decorator\router\index.ts
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { isArray } from "../../utils";
+
 type Callback = () => void;
 
 interface Routes {
@@ -40,10 +42,9 @@ export default class Router {
 	}
 }
 
-export const Controller = (path: string) => (target: any): void => {
+export const Controller = (path: string = "") => (target: any): void => {
 	target.prototype[prefixPath] = _resolvePath(path);
 };
-
 
 const _resolvePath = (path: string) => {
 	if (!path) return "";
@@ -62,8 +63,9 @@ const _setRouter = (method: string) => (path: string) => (
 		target,
 		method,
 		path: _resolvePath(path),
-		callback: target[name],
+		callback: isArray(target[name]),
 	});
+
 	return decorator;
 };
 

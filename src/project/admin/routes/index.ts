@@ -5,4 +5,4 @@ const install = (): void => {
 	routesClass.map(r => new r());
 };
 
-export { install, Test };
+export { install };

@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { GET, Controller } from "../decorator/router";
-import decorators from "../decorator/middleware";
-
-const { Logd } = decorators;
+import { LogDecorator, TestDecorator } from "../decorator";
 
 @Controller("test")
 class Test {
 	@GET("/login")
-	@Logd
-	isLogin(ctx: any): void {
+	@TestDecorator
+	@LogDecorator
+	isLogin(ctx: any) {
 		ctx.body = {
 			status: 200,
 		};
