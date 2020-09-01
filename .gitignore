@@ -5,6 +5,8 @@
 *.diff
 *.patch
 *.bak
+*.local
+db.json
 .DS_Store
 node_modules/
 dist/
