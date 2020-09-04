@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+export * from "./jsonwebtoken";
+
 const Test = async function Test(ctx: any, next: any): Promise<any> {
 	console.log(321);
 	await next();
@@ -15,8 +17,4 @@ const Test2 = async (ctx: any, next: any): Promise<any> => {
 	await next();
 };
 
-export {
-	Log,
-	Test,
-	Test2
-};
+export { Log, Test, Test2 };
