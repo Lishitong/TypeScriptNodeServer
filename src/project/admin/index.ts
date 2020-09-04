@@ -3,6 +3,7 @@ import KoaRouter from "koa-router";
 import Router from "./decorator/router";
 import KoaBody from "koa-body";
 import { install } from "./routes";
+import { dao_ip_filter } from "./middleware";
 
 const admin: Koa = new Koa();
 const koaRouter: KoaRouter = new KoaRouter();
@@ -14,6 +15,7 @@ const router: KoaRouter = (() => {
 
 admin
 	.use(KoaBody())
+	.use(dao_ip_filter)
 	.use(router.routes())
 	.use(router.allowedMethods())
 	.listen(3000, () => {
