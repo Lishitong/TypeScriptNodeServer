@@ -9,8 +9,8 @@ const admin: Koa = new Koa();
 const koaRouter: KoaRouter = new KoaRouter();
 const installRouter: Router = new Router(koaRouter);
 const router: KoaRouter = (() => {
-	install();
-	return installRouter.init();
+	install(); // 注册路由信息
+	return installRouter.init(); // 挂载到router，并返回router实例
 })();
 
 admin
