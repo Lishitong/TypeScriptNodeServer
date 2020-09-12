@@ -2,64 +2,63 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { POST, Controller, GET } from "../decorator/router";
 
-// import { user_mongodb, user_info_model, user_auth_model } from "../models";
-import { getValidateCode, getResult, setToken } from "../utils";
+import { user_info_model, user_auth_model } from "../models";
+import { getValidateCode, getResult } from "../utils";
 import jwt from "jsonwebtoken";
-// user_mongodb();
-// const test = {
-// 	user_name: "test",
-// 	nick_name: "tes21t",
-// };
-// const user_info = new user_info_model(test);
+import { readFileSync } from "fs";
+import { resolve } from "path";
 
-// user_info_model.deleteMany({ user_name: "test" }, async err => {
-// 	console.log(err);
+const mima = readFileSync(resolve(__dirname, "../../../", "m.json"), {
+	encoding: "utf-8",
+});
 
-// 	const save = await user_info.save();
-// 	const auth = {
-// 		uid: save._id,
-// 	};
-// 	const user_auth = await new user_auth_model(auth).save();
-// 	console.log(save, user_auth);
-// });
+const { ACCESS_MIMA, REFRESH_MIMA } = JSON.parse(mima);
 
 @Controller("user")
 class Login {
 	@POST("/login")
-	login(ctx: any) {
+	async login(ctx: any) {
 		const { username, password } = JSON.parse(ctx.request.body);
-		const validate = getResult();
-		let result = null;
-		const dateTime = new Date().getTime();
-		console.log(validate, dateTime);
-		if (validate.invalidTime < dateTime) {
-			result = {
-				message: "验证码失效",
-				state: "error",
-				status: 200,
-			};
-		} else if (username == "caicaizhi" && password == "woshicaibi") {
-			result = {
-				username,
-				message: "",
-				state: "success",
-				status: 200,
-			};
-			const token = jwt.sign({ username }, "caicaizhiAAA");
-			setToken(token);
-			ctx.set({
-				Authorization: token,
-			});
-		} else {
-			result = {
-				message: "用户名或密码错误",
-				state: "error",
-				status: 200,
-			};
-		}
+		const find_name = await user_info_model.findOne({ user_name: username });
 
+		const find_pwd =
+			find_name && (await user_auth_model.findOne({ uid: find_name._id }));
+
+		const contrastPwd = find_pwd && find_pwd.pwd === password;
+		const invalidTime = getResult().invalidTime;
+		const dateTime = new Date().getTime();
+		const validateCode = invalidTime >= dateTime;
+		if (!!find_name && !!contrastPwd && validateCode && !!find_pwd) {
+			const access_token = jwt.sign(
+				{ username: username, uid: find_pwd.uid },
+				ACCESS_MIMA,
+				{
+					expiresIn: "30m",
+				}
+			);
+			const refresh_token = jwt.sign(
+				{ username: username, uid: find_pwd.uid },
+				REFRESH_MIMA,
+				{
+					expiresIn: "15d",
+				}
+			);
+			await user_auth_model.updateOne(
+				{ uid: find_name._id },
+				{ access_token, refresh_token, update_time: Date.now() }
+			);
+			ctx.set({
+				Authorization: access_token,
+			});
+		}
 		ctx.body = {
-			...result,
+			validate: {
+				user_name: !!find_name ? true : false,
+				password: !!contrastPwd,
+				validateCode,
+			},
+			state: "success",
+			status: 200,
 		};
 	}
 }
@@ -67,9 +66,47 @@ class Login {
 @Controller("user")
 class Register {
 	@POST("/register")
-	register(ctx: any) {
+	async register(ctx: any) {
+		const registerInfo = JSON.parse(ctx.request.body);
+	
+		let username = true,
+			nickname = true;
+
+		const find_user = await user_info_model.find({
+			$or: [
+				{
+					user_name: registerInfo.user_name,
+				},
+				{
+					nick_name: registerInfo.nick_name,
+				},
+			],
+		});
+
+		if (find_user) {
+			username = !find_user.filter(
+				user => user.user_name === registerInfo.user_name
+			).length;
+			nickname = !find_user.filter(
+				user => user.nick_name === registerInfo.nick_name
+			).length;
+		}
+		if (username && nickname) {
+			const user_info = await new user_info_model(registerInfo).save();
+			const auth = {
+				uid: user_info._id,
+				pwd: registerInfo.password,
+			};
+			await new user_auth_model(auth).save();
+		}
+
 		ctx.body = {
+			validate: {
+				username,
+				nickname,
+			},
 			status: 200,
+			state: "success",
 		};
 	}
 }

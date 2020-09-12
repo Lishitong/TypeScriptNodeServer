@@ -9,7 +9,6 @@ const code = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM0123456789".sp
 );
 
 let result: Validate;
-let token: string;
 
 const getRndInteger = (min = 0, max = 62, isclude = 0): number => {
 	return Math.floor(Math.random() * (max - min + isclude)) + min;
@@ -31,7 +30,5 @@ const getValidateCode = ({ invalid } = { invalid: 60 * 1000 * 5 }): void => {
 };
 
 const getResult = (): Validate => result;
-const setToken = (token: string): string => token;
-const getToken = (): string => token;
 
-export { getRndInteger, getValidateCode, getResult, setToken, getToken };
+export { getRndInteger, getValidateCode, getResult };

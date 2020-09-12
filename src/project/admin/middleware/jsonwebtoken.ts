@@ -1,31 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { getToken } from "../utils";
+import { tokenApi } from "../config";
 import jwt from "jsonwebtoken";
+import { user_auth_model } from "../models";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 
-// type WhiteList = {
-// 	"/user/login": boolean;
-// 	"/api/validateCode": boolean;
-// };
+const mima = readFileSync(resolve(__dirname, "../../../", "m.json"), {
+	encoding: "utf-8",
+});
 
-// const WHITE_LIST: WhiteList = {
-// 	"/user/login": true,
-// 	"/api/validateCode": true,
-// };
+const { ACCESS_MIMA, REFRESH_MIMA } = JSON.parse(mima);
 
 const Jwt = async (ctx: any, next: any): Promise<any> => {
-	const token = getToken();
-	console.log(ctx.url, token);
+	if (tokenApi[ctx.url]) {
+		await next();
+		return;
+	}
+	const { authorization } = ctx.header;
 
-	// if (WHITE_LIST[ctx.url]) {
-	// 	console.log(123);
-
-	// 	await next();
-	// } else {
 	try {
-		jwt.verify(token, "caicaizhiAAA");
+		jwt.verify(authorization, ACCESS_MIMA);
 		await next();
 	} catch (error) {
+		console.log(error);
+
 		ctx.status = 401;
 		ctx.body = {
 			message: "用户需要认证",
@@ -33,10 +32,17 @@ const Jwt = async (ctx: any, next: any): Promise<any> => {
 			state: "success",
 		};
 		// ctx.throw(401, `用户需要认证:${error}`);
-
-		console.log(error);
 	}
 	// }
+};
+
+const jwt_refresh_token = async (authorization: string) => {
+	const find_token = await user_auth_model.findOne({
+		access_token: authorization,
+	});
+
+	
+	console.log(find_token);
 };
 
 export { Jwt };

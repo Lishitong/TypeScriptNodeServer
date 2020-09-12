@@ -11,6 +11,18 @@ const schema = new Schema(
 		id: {
 			type: ObjectId,
 		},
+		pwd: {
+			type: String,
+		},
+		// token: {
+		// 	type: String,
+		// },
+		access_token: {
+			type: String,
+		},
+		refresh_token: {
+			type: String,
+		},
 		create_time: {
 			type: Date,
 			default: Date.now(),

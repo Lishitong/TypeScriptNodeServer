@@ -6,6 +6,7 @@
 *.patch
 *.bak
 *.local
+m.json
 db.json
 .DS_Store
 node_modules/
