@@ -11,12 +11,12 @@ const schema = new Schema(
 		id: {
 			type: ObjectId,
 		},
-		pwd: {
+		pass_word: {
 			type: String,
 		},
-		// token: {
-		// 	type: String,
-		// },
+		login_system: { type: String },
+		login_time: { type: Date },
+		login_last_time: { type: Date },
 		access_token: {
 			type: String,
 		},

@@ -50,6 +50,14 @@ const schema = new Schema(
 		id: {
 			type: ObjectId,
 		},
+		register_system: { type: String },
+		register_time: {
+			type: Date,
+			default: Date.now(),
+		},
+		register_ip: {
+			type: String,
+		},
 		create_time: {
 			type: Date,
 			default: Date.now(),

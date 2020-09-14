@@ -33,14 +33,14 @@ class Login {
 				{ username: username, uid: find_pwd.uid },
 				ACCESS_MIMA,
 				{
-					expiresIn: "30m",
+					expiresIn: "15m",
 				}
 			);
 			const refresh_token = jwt.sign(
 				{ username: username, uid: find_pwd.uid },
 				REFRESH_MIMA,
 				{
-					expiresIn: "15d",
+					expiresIn: "7d",
 				}
 			);
 			await user_auth_model.updateOne(
