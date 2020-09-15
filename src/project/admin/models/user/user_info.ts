@@ -50,13 +50,17 @@ const schema = new Schema(
 		id: {
 			type: ObjectId,
 		},
-		register_system: { type: String },
+		time: {
+			type: Number,
+		},
+		register_system: { type: String, default: null },
 		register_time: {
 			type: Date,
 			default: Date.now(),
 		},
 		register_ip: {
 			type: String,
+			default: null,
 		},
 		create_time: {
 			type: Date,
@@ -71,5 +75,16 @@ const schema = new Schema(
 		versionKey: false,
 	}
 );
+
+schema.pre("update", function () {
+	this.update(
+		{},
+		{
+			$set: {
+				update_time: Date.now(),
+			},
+		}
+	);
+});
 
 export const user_info_model = model(datatables, schema);

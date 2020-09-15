@@ -1,8 +1,7 @@
 import { Schema, model } from "mongoose";
-import { user_auth } from "../database";
-
+import { login_log } from "../database";
 const ObjectId = Schema.Types.ObjectId;
-const { datatables } = user_auth;
+const { datatables } = login_log;
 const schema = new Schema(
 	{
 		uid: {
@@ -11,18 +10,6 @@ const schema = new Schema(
 		id: {
 			type: ObjectId,
 		},
-		pass_word: {
-			type: String,
-		},
-		login_system: { type: String },
-		login_time: { type: Date },
-		login_last_time: { type: Date },
-		access_token: {
-			type: String,
-		},
-		refresh_token: {
-			type: String,
-		},
 		create_time: {
 			type: Date,
 			default: Date.now(),
@@ -30,6 +17,18 @@ const schema = new Schema(
 		update_time: {
 			type: Date,
 			default: Date.now(),
+		},
+		times: {
+			type: Array,
+			default: [],
+		},
+		ips: {
+			type: Array,
+			default: [],
+		},
+		systems: {
+			type: Array,
+			default: [],
 		},
 	},
 	{
@@ -48,4 +47,4 @@ schema.pre("update", function () {
 	);
 });
 
-export const user_auth_model = model(datatables, schema);
+export const login_log_model = model(datatables, schema);

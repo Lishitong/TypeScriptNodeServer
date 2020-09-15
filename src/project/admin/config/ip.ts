@@ -7,4 +7,5 @@ export const tokenApi = {
 	"/api/validateCode": true,
 	"/user/login": true,
 	"/user/register": true,
+	"/user/validatePwd": true,
 };

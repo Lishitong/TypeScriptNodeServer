@@ -7,55 +7,31 @@ import { getValidateCode, getResult } from "../utils";
 import jwt from "jsonwebtoken";
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import { createHash } from "crypto";
 
 const mima = readFileSync(resolve(__dirname, "../../../", "m.json"), {
 	encoding: "utf-8",
 });
 
-const { ACCESS_MIMA, REFRESH_MIMA } = JSON.parse(mima);
+const { ACCESS_MIMA, REFRESH_MIMA, USER_PASSWORD } = JSON.parse(mima);
 
 @Controller("user")
 class Login {
 	@POST("/login")
 	async login(ctx: any) {
-		const { username, password } = JSON.parse(ctx.request.body);
+		const { username } = JSON.parse(ctx.request.body);
 		const find_name = await user_info_model.findOne({ user_name: username });
 
-		const find_pwd =
-			find_name && (await user_auth_model.findOne({ uid: find_name._id }));
-
-		const contrastPwd = find_pwd && find_pwd.pwd === password;
 		const invalidTime = getResult().invalidTime;
 		const dateTime = new Date().getTime();
 		const validateCode = invalidTime >= dateTime;
-		if (!!find_name && !!contrastPwd && validateCode && !!find_pwd) {
-			const access_token = jwt.sign(
-				{ username: username, uid: find_pwd.uid },
-				ACCESS_MIMA,
-				{
-					expiresIn: "15m",
-				}
-			);
-			const refresh_token = jwt.sign(
-				{ username: username, uid: find_pwd.uid },
-				REFRESH_MIMA,
-				{
-					expiresIn: "7d",
-				}
-			);
-			await user_auth_model.updateOne(
-				{ uid: find_name._id },
-				{ access_token, refresh_token, update_time: Date.now() }
-			);
-			ctx.set({
-				Authorization: access_token,
-			});
-		}
+
 		ctx.body = {
 			validate: {
 				user_name: !!find_name ? true : false,
-				password: !!contrastPwd,
 				validateCode,
+				time: find_name && find_name.time,
+				uid: find_name && find_name._id,
 			},
 			state: "success",
 			status: 200,
@@ -68,7 +44,7 @@ class Register {
 	@POST("/register")
 	async register(ctx: any) {
 		const registerInfo = JSON.parse(ctx.request.body);
-	
+
 		let username = true,
 			nickname = true;
 
@@ -92,10 +68,17 @@ class Register {
 			).length;
 		}
 		if (username && nickname) {
-			const user_info = await new user_info_model(registerInfo).save();
+			const user_info = await new user_info_model({
+				...registerInfo,
+				register_ip: ctx.ip,
+				register_system: ctx.header["user-agent"],
+			}).save();
+			const md5hexPwd = createHash("md5").update(
+				registerInfo.pass_word + USER_PASSWORD
+			);
 			const auth = {
 				uid: user_info._id,
-				pwd: registerInfo.password,
+				pass_word: md5hexPwd.digest("hex"),
 			};
 			await new user_auth_model(auth).save();
 		}
@@ -107,6 +90,45 @@ class Register {
 			},
 			status: 200,
 			state: "success",
+		};
+	}
+}
+
+@Controller("user")
+class VlidatePwd {
+	@POST("validatePwd")
+	async validatePwd(ctx: any) {
+		const { username, password, uid } = JSON.parse(ctx.request.body);
+		const find_pwd = await user_auth_model.findOne({ uid });
+		const md5hexPwd = createHash("md5").update(password + USER_PASSWORD);
+		const pwd = find_pwd && find_pwd.pass_word === md5hexPwd.digest("hex");
+		if (pwd) {
+			const access_token = jwt.sign(
+				{ username: username, uid: uid },
+				ACCESS_MIMA,
+				{
+					expiresIn: "15m",
+				}
+			);
+			const refresh_token = jwt.sign(
+				{ username: username, uid: uid },
+				REFRESH_MIMA,
+				{
+					expiresIn: "7d",
+				}
+			);
+			await user_auth_model.updateOne(
+				{ uid: uid },
+				{ access_token, refresh_token, update_time: Date.now() }
+			);
+			ctx.set({
+				Authorization: access_token,
+			});
+		}
+		ctx.body = {
+			state: 200,
+			password: pwd,
+			status: "success",
 		};
 	}
 }
@@ -125,4 +147,4 @@ class ValidateCode {
 	}
 }
 
-export { Login, Register, ValidateCode };
+export { Login, Register, ValidateCode, VlidatePwd };

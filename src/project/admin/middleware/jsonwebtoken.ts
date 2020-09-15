@@ -17,7 +17,7 @@ const { ACCESS_MIMA } = JSON.parse(mima);
 // 3.用户token失效
 
 const Jwt = async (ctx: any, next: any): Promise<any> => {
-	console.log(ctx.ip);
+	console.log(ctx.ip,ctx.header);
 	if (tokenApi[ctx.url]) {
 		await next();
 		return;
