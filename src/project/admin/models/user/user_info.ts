@@ -76,7 +76,7 @@ const schema = new Schema(
 	}
 );
 
-schema.pre("update", function () {
+schema.pre("updateOne", function () {
 	this.update(
 		{},
 		{

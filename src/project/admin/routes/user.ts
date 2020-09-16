@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { POST, Controller, GET } from "../decorator/router";
 
-import { user_info_model, user_auth_model } from "../models";
+import { user_info_model, user_auth_model, login_log_model } from "../models";
 import { getValidateCode, getResult } from "../utils";
 import jwt from "jsonwebtoken";
 import { readFileSync } from "fs";
@@ -81,6 +81,7 @@ class Register {
 				pass_word: md5hexPwd.digest("hex"),
 			};
 			await new user_auth_model(auth).save();
+			await login_log_model.create({ uid: user_info._id });
 		}
 
 		ctx.body = {
@@ -102,6 +103,9 @@ class VlidatePwd {
 		const find_pwd = await user_auth_model.findOne({ uid });
 		const md5hexPwd = createHash("md5").update(password + USER_PASSWORD);
 		const pwd = find_pwd && find_pwd.pass_word === md5hexPwd.digest("hex");
+		const now = Date.now();
+		const ip = ctx.ip;
+		const userAgent = ctx.header["user-agent"];
 		if (pwd) {
 			const access_token = jwt.sign(
 				{ username: username, uid: uid },
@@ -119,8 +123,28 @@ class VlidatePwd {
 			);
 			await user_auth_model.updateOne(
 				{ uid: uid },
-				{ access_token, refresh_token, update_time: Date.now() }
+				{
+					access_token,
+					refresh_token,
+					login_time: now,
+					login_last_time: find_pwd && find_pwd.login_time,
+					login_system: ctx.header["user-agent"],
+					login_ip: ip,
+					login_last_ip: find_pwd && find_pwd.login_ip,
+				}
 			);
+
+			const login_log = await login_log_model.findOne({ uid: uid });
+
+			await login_log_model.updateOne(
+				{ uid: uid },
+				{
+					times: login_log && [now, ...login_log.times],
+					ips: login_log && [ip, ...login_log.ips],
+					systems: login_log && [userAgent, ...login_log.systems],
+				}
+			);
+
 			ctx.set({
 				Authorization: access_token,
 			});

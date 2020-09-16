@@ -17,6 +17,8 @@ const schema = new Schema(
 		login_system: { type: String },
 		login_time: { type: Date },
 		login_last_time: { type: Date },
+		login_ip: { type: String },
+		login_last_ip: { type: String },
 		access_token: {
 			type: String,
 		},
@@ -37,7 +39,7 @@ const schema = new Schema(
 	}
 );
 
-schema.pre("update", function () {
+schema.pre("updateOne", function () {
 	this.update(
 		{},
 		{

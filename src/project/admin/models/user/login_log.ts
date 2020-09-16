@@ -19,15 +19,15 @@ const schema = new Schema(
 			default: Date.now(),
 		},
 		times: {
-			type: Array,
+			type: [Date],
 			default: [],
 		},
 		ips: {
-			type: Array,
+			type: [String],
 			default: [],
 		},
 		systems: {
-			type: Array,
+			type: [String],
 			default: [],
 		},
 	},
@@ -36,7 +36,7 @@ const schema = new Schema(
 	}
 );
 
-schema.pre("update", function () {
+schema.pre("updateOne", function () {
 	this.update(
 		{},
 		{
