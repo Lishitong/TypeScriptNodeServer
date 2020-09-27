@@ -134,14 +134,14 @@ class VlidatePwd {
 				}
 			);
 
-			const login_log = await login_log_model.findOne({ uid: uid });
-
 			await login_log_model.updateOne(
 				{ uid: uid },
 				{
-					times: login_log && [now, ...login_log.times],
-					ips: login_log && [ip, ...login_log.ips],
-					systems: login_log && [userAgent, ...login_log.systems],
+					$push: {
+						times: now,
+						ips: ip,
+						systems: userAgent,
+					},
 				}
 			);
 

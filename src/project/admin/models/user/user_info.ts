@@ -35,7 +35,7 @@ const schema = new Schema(
 		// 生日
 		birthday: {
 			type: String,
-			default: "1999-01-01",
+			default: "1970-01-01",
 		},
 		// 签名
 		signature: {
@@ -53,10 +53,9 @@ const schema = new Schema(
 		time: {
 			type: Number,
 		},
-		register_system: { type: String, default: null },
-		register_time: {
-			type: Date,
-			default: Date.now(),
+		register_system: {
+			type: String,
+			default: null,
 		},
 		register_ip: {
 			type: String,
