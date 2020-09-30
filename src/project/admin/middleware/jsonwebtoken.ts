@@ -10,26 +10,23 @@ const mima = readFileSync(resolve(__dirname, "../../../", "m.json"), {
 	encoding: "utf-8",
 });
 
-const { ACCESS_MIMA } = JSON.parse(mima);
+const { ACCESS_MIMA, REFRESH_MIMA } = JSON.parse(mima);
 
 // 1.接口token错误/失效
 // 2.接口token正确，用户token错误
 // 3.用户token失效
 
 const Jwt = async (ctx: any, next: any): Promise<any> => {
-	console.log(ctx.ip,ctx.header);
 	if (tokenApi[ctx.url]) {
 		await next();
 		return;
 	}
 	const { authorization } = ctx.header;
-
 	try {
 		jwt.verify(authorization, ACCESS_MIMA);
 		await next();
 	} catch (error) {
 		const token = await jwt_refresh_token(authorization);
-
 		if (!token) {
 			ctx.status = 401;
 			ctx.body = {
@@ -51,17 +48,17 @@ const jwt_refresh_token = async (authorization: string) => {
 	const find_token = await user_auth_model.findOne({
 		access_token: authorization,
 	});
-	if (!find_token || !find_token.refresh_token) return false;
-	const refresh = _parseBase64JWT(find_token.refresh_token);
+	if (!find_token) return false;
+	const refresh = jwt.decode(find_token.refresh_token, REFRESH_MIMA);
 	const { username, uid, exp } = refresh;
 	const now = new Date().getTime();
-
-	if (!refresh || exp <= now) {
+	console.log(exp * 1000, now);
+	if (exp * 1000 > now) {
 		const new_access_token = jwt.sign(
 			{ username: username, uid: uid },
 			ACCESS_MIMA,
 			{
-				expiresIn: "15m",
+				expiresIn: "1m",
 			}
 		);
 		await user_auth_model.updateOne(
@@ -71,14 +68,6 @@ const jwt_refresh_token = async (authorization: string) => {
 		return new_access_token;
 	}
 	return false;
-};
-
-const _parseBase64JWT = (base64: string) => {
-	if (!base64) return;
-	const token = Buffer.from(base64, "base64").toString();
-	const reg = /{(.*)}{(.*)}/g;
-	const str = reg.exec(token);
-	return str && JSON.parse(`{${str[2]}}`);
 };
 
 export { Jwt };

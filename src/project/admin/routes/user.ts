@@ -111,7 +111,7 @@ class VlidatePwd {
 				{ username: username, uid: uid },
 				ACCESS_MIMA,
 				{
-					expiresIn: "15m",
+					expiresIn: "1m",
 				}
 			);
 			const refresh_token = jwt.sign(
