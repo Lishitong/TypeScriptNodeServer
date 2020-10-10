@@ -111,7 +111,7 @@ class VlidatePwd {
 				{ username: username, uid: uid },
 				ACCESS_MIMA,
 				{
-					expiresIn: "1m",
+					expiresIn: "15m",
 				}
 			);
 			const refresh_token = jwt.sign(
@@ -157,6 +157,67 @@ class VlidatePwd {
 	}
 }
 
+@Controller("user")
+class ConfigMenus {
+	@POST("/home/configMenus")
+	async configMenus(ctx: any) {
+		let message = "保存失败，请重新尝试",
+			data = null,
+			status = "error";
+		const { menus } = ctx.request.body;
+		const { authorization } = ctx.header;
+		const jwt_p = jwt.decode(authorization, ACCESS_MIMA);
+		const uid = jwt_p && jwt_p.uid;
+		const user_auth = await user_auth_model.findOneAndUpdate(
+			{ uid },
+			{
+				menus,
+			}
+		);
+
+		if (user_auth) {
+			message = "保存成功，刷新或重登后生效";
+			status = "success";
+			data = {
+				visual: menus.find((m: any) => m.key === "visual"),
+				personnel: menus.find((m: any) => m.key === "personnel"),
+				article: menus.find((m: any) => m.key === "article"),
+			};
+		}
+		console.log(menus);
+		ctx.body = {
+			status,
+			state: 200,
+			message,
+			data,
+		};
+	}
+}
+@Controller("user")
+class GetOwnedMenus {
+	@GET("/home/getOwnedMenus")
+	async getOwnedMenus(ctx: any) {
+		let data = null;
+		const { authorization } = ctx.header;
+		const jwt_p = jwt.decode(authorization, ACCESS_MIMA);
+		const uid = jwt_p && jwt_p.uid;
+		const user_auth = await user_auth_model.findOne({ uid });
+
+		if (user_auth) {
+			data = {
+				visual: user_auth.menus.find((m: any) => m.key === "visual"),
+				personnel: user_auth.menus.find((m: any) => m.key === "personnel"),
+				article: user_auth.menus.find((m: any) => m.key === "article"),
+			};
+		}
+		ctx.body = {
+			status: "success",
+			state: 200,
+			data,
+		};
+	}
+}
+
 @Controller("api")
 class ValidateCode {
 	@GET("validateCode")
@@ -171,4 +232,11 @@ class ValidateCode {
 	}
 }
 
-export { Login, Register, ValidateCode, VlidatePwd };
+export {
+	Login,
+	Register,
+	ValidateCode,
+	VlidatePwd,
+	ConfigMenus,
+	GetOwnedMenus,
+};

@@ -14,6 +14,10 @@ const schema = new Schema(
 		pass_word: {
 			type: String,
 		},
+		menus: {
+			type: Array,
+			default: [],
+		},
 		login_system: { type: String },
 		login_time: { type: Date },
 		login_last_time: { type: Date },

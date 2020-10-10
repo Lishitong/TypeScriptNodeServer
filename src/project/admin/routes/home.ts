@@ -4,7 +4,7 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { Controller, GET } from "../decorator/router";
-import { user_info_model } from "../models";
+import { user_info_model, user_auth_model } from "../models";
 
 import jwt from "jsonwebtoken";
 const mima = readFileSync(resolve(__dirname, "../../../", "m.json"), {
@@ -36,4 +36,28 @@ class Home {
 	}
 }
 
-export { Home };
+@Controller("api")
+class Menus {
+	@GET("home/menus")
+	async menus(ctx: any) {
+		let data = null;
+		const { authorization } = ctx.header;
+		const jwt_p = jwt.decode(authorization, ACCESS_MIMA);
+		const uid = jwt_p && jwt_p.uid;
+		const user_auth = await user_auth_model.findOne({ uid });
+
+		if (user_auth) {
+			data = {
+				menus: user_auth.menus,
+			};
+		}
+
+		ctx.body = {
+			status: 200,
+			state: "success",
+			data,
+		};
+	}
+}
+
+export { Home, Menus };

@@ -17,7 +17,7 @@ const { ACCESS_MIMA, REFRESH_MIMA } = JSON.parse(mima);
 // 3.用户token失效
 
 const Jwt = async (ctx: any, next: any): Promise<any> => {
-	if (tokenApi[ctx.url]) {
+	if (tokenApi[ctx.url] || ctx.method === "OPTIONS") {
 		await next();
 		return;
 	}
@@ -26,7 +26,9 @@ const Jwt = async (ctx: any, next: any): Promise<any> => {
 		jwt.verify(authorization, ACCESS_MIMA);
 		await next();
 	} catch (error) {
-		const token = await jwt_refresh_token(authorization);
+		const decodeAuth = jwt.decode(authorization, ACCESS_MIMA);
+		const uid = decodeAuth && decodeAuth.uid;
+		const token = await jwt_refresh_token(uid);
 		if (!token) {
 			ctx.status = 401;
 			ctx.body = {
@@ -44,13 +46,13 @@ const Jwt = async (ctx: any, next: any): Promise<any> => {
 	}
 };
 
-const jwt_refresh_token = async (authorization: string) => {
+const jwt_refresh_token = async (uid: string) => {
 	const find_token = await user_auth_model.findOne({
-		access_token: authorization,
+		uid,
 	});
 	if (!find_token) return false;
 	const refresh = jwt.decode(find_token.refresh_token, REFRESH_MIMA);
-	const { username, uid, exp } = refresh;
+	const { username, exp } = refresh;
 	const now = new Date().getTime();
 	console.log(exp * 1000, now);
 	if (exp * 1000 > now) {
@@ -58,7 +60,7 @@ const jwt_refresh_token = async (authorization: string) => {
 			{ username: username, uid: uid },
 			ACCESS_MIMA,
 			{
-				expiresIn: "1m",
+				expiresIn: "15m",
 			}
 		);
 		await user_auth_model.updateOne(
