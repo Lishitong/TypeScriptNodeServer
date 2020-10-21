@@ -3,18 +3,17 @@
 import { POST, Controller, GET } from "../decorator/router";
 
 import { user_info_model, user_auth_model, login_log_model } from "../models";
-import { getValidateCode, getResult } from "../utils";
+import { getResult } from "../utils";
 import jwt from "jsonwebtoken";
+import { createHash } from "crypto";
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { createHash } from "crypto";
 
 const mima = readFileSync(resolve(__dirname, "../../../", "m.json"), {
 	encoding: "utf-8",
 });
 
 const { ACCESS_MIMA, REFRESH_MIMA, USER_PASSWORD } = JSON.parse(mima);
-
 @Controller("user")
 class Login {
 	@POST("/login")
@@ -150,34 +149,86 @@ class VlidatePwd {
 			});
 		}
 		ctx.body = {
-			state: 200,
+			state: "success",
 			password: pwd,
-			status: "success",
+			status: 200,
+		};
+	}
+}
+
+@Controller("user")
+class UserInfo {
+	@GET("/userInfo")
+	async userInfo(ctx: any) {
+		const { authorization } = ctx.header;
+		const jwt_p = jwt.decode(authorization, ACCESS_MIMA);
+		const uid = jwt_p && jwt_p.uid;
+		const user_info = await user_info_model.findById(uid);
+		const user_auth = await user_auth_model.findOne({ uid });
+		let data = null;
+		if (user_info && user_auth) {
+			data = {
+				nickname: user_info.nick_name,
+				username: user_info.user_name,
+				face: user_info.face,
+				userlevel: user_auth.user_level,
+			};
+		}
+		ctx.body = {
+			status: 200,
+			state: "success",
+			data,
+		};
+	}
+}
+
+@Controller("user")
+class UserMenus {
+	@GET("/userMenus")
+	async userMenus(ctx: any) {
+		let data = null;
+		const { authorization } = ctx.header;
+		const jwt_p = jwt.decode(authorization, ACCESS_MIMA);
+		const uid = jwt_p && jwt_p.uid;
+		const user_auth = await user_auth_model.findOne({ uid });
+
+		if (user_auth) {
+			data = {
+				menus: user_auth.menus,
+			};
+		}
+
+		ctx.body = {
+			status: 200,
+			state: "success",
+			data,
 		};
 	}
 }
 
 @Controller("user")
 class ConfigMenus {
-	@POST("/home/configMenus")
+	@POST("/configMenus")
 	async configMenus(ctx: any) {
 		let message = "保存失败，请重新尝试",
 			data = null,
-			status = "error";
-		const { menus } = ctx.request.body;
+			state = "error";
+		const { menus, userUid } = ctx.request.body;
 		const { authorization } = ctx.header;
 		const jwt_p = jwt.decode(authorization, ACCESS_MIMA);
-		const uid = jwt_p && jwt_p.uid;
+		const uid = userUid || (jwt_p && jwt_p.uid);
 		const user_auth = await user_auth_model.findOneAndUpdate(
 			{ uid },
 			{
-				menus,
+				menus: menus.sort(
+					(a: { key: string }, b: { key: string }) => a.key > b.key
+				),
 			}
 		);
 
 		if (user_auth) {
 			message = "保存成功，刷新或重登后生效";
-			status = "success";
+			state = "success";
 			data = {
 				visual: menus.find((m: any) => m.key === "visual"),
 				personnel: menus.find((m: any) => m.key === "personnel"),
@@ -186,8 +237,8 @@ class ConfigMenus {
 		}
 		console.log(menus);
 		ctx.body = {
-			status,
-			state: 200,
+			status: 200,
+			state,
 			message,
 			data,
 		};
@@ -195,7 +246,7 @@ class ConfigMenus {
 }
 @Controller("user")
 class GetOwnedMenus {
-	@GET("/home/getOwnedMenus")
+	@GET("/getOwnedMenus")
 	async getOwnedMenus(ctx: any) {
 		let data = null;
 		const { authorization } = ctx.header;
@@ -211,23 +262,68 @@ class GetOwnedMenus {
 			};
 		}
 		ctx.body = {
-			status: "success",
-			state: 200,
+			status: 200,
+			state: "success",
 			data,
 		};
 	}
 }
 
-@Controller("api")
-class ValidateCode {
-	@GET("validateCode")
-	validateCode(ctx: any) {
-		getValidateCode();
-		const validate = getResult();
+@Controller("user")
+class GetUserInfoList {
+	@GET("/getUserInfoList")
+	async getUserInfoList(ctx: any) {
+		const { userLevel } = ctx.query;
+		console.log(userLevel);
+		let data = null;
+		const user_list = await user_info_model.find(
+			{ user_level: { $gte: userLevel } },
+			{ nick_name: 1 }
+		);
+
+		if (user_list) {
+			data = user_list;
+		}
 		ctx.body = {
-			codeInfo: validate,
 			status: 200,
 			state: "success",
+			data,
+		};
+	}
+}
+
+@Controller("user")
+class GetSingleUserAuth {
+	@GET("/getSingleUserAuth")
+	async getSingleUserAuth(ctx: any) {
+		let data = null,
+			status = 400;
+		console.log(ctx.query);
+		const { uid } = ctx.query;
+		if (uid) {
+			const single_user = await user_auth_model.findOne({ uid });
+
+			if (single_user) {
+				// data = { menus: single_user.menus, uid };
+				data = {
+					menus: {
+						visual: single_user.menus.find((m: any) => m.key === "visual"),
+						personnel: single_user.menus.find(
+							(m: any) => m.key === "personnel"
+						),
+						article: single_user.menus.find((m: any) => m.key === "article"),
+					},
+					uid,
+				};
+			}
+			status = 200;
+		} else {
+			ctx.status = 400;
+		}
+		ctx.body = {
+			status,
+			state: "success",
+			data,
 		};
 	}
 }
@@ -235,8 +331,11 @@ class ValidateCode {
 export {
 	Login,
 	Register,
-	ValidateCode,
 	VlidatePwd,
 	ConfigMenus,
 	GetOwnedMenus,
+	GetUserInfoList,
+	UserInfo,
+	UserMenus,
+	GetSingleUserAuth,
 };

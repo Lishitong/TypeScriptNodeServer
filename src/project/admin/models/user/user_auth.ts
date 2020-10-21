@@ -18,6 +18,11 @@ const schema = new Schema(
 			type: Array,
 			default: [],
 		},
+		user_level: {
+			type: String,
+			default: "2-会员-member", // member admin root
+			uppercase: true,
+		},
 		login_system: { type: String },
 		login_time: { type: Date },
 		login_last_time: { type: Date },

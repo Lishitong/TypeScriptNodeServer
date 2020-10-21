@@ -20,6 +20,6 @@ admin
 	.use(Jwt)
 	.use(router.routes())
 	.use(router.allowedMethods())
-	.listen(3000,"0.0.0.0", () => {
+	.listen(3000, "0.0.0.0", () => {
 		console.log("admin server start");
 	});

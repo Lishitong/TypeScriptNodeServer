@@ -11,7 +11,6 @@ const mima = readFileSync(resolve(__dirname, "../../../", "m.json"), {
 });
 
 const { ACCESS_MIMA, REFRESH_MIMA } = JSON.parse(mima);
-
 // 1.接口token错误/失效
 // 2.接口token正确，用户token错误
 // 3.用户token失效

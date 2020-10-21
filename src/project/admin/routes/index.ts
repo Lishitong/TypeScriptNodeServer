@@ -1,13 +1,8 @@
-import {
-	Login,
-} from "./user";
-import { Home } from "./home";
+import { Login } from "./user";
+import { ValidateCode } from "./utils";
 // import { auto_import } from "../utils";
 
-const routesClass = [
-	Login,
-	Home,
-];
+const routesClass = [Login, ValidateCode];
 const install = (): void => {
 	routesClass.map(r => new r());
 };

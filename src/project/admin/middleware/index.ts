@@ -3,13 +3,3 @@
 
 export * from "./jsonwebtoken";
 export * from "./interfaceIp";
-
-
-
-const Log = async (ctx: any, next: any): Promise<any> => {
-	await next();
-};
-
-
-
-export { Log };

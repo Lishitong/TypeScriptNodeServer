@@ -1,5 +1,6 @@
 export const interfaceIp = {
-	"10.226.77.212:3000": true,
+	"10.226.76.249:3000": true,
+	"172.17.205.225:3000":true,
 	"localhost:3000": false,
 };
 

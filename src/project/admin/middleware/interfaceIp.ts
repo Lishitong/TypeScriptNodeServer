@@ -4,6 +4,7 @@ import { interfaceIp } from "../config";
 
 const dao_ip_filter = async (ctx: any, next: any): Promise<any> => {
 	const host = ctx.request.header.host;
+	console.log(host);
 	if (interfaceIp[host]) {
 		await next();
 	} else {

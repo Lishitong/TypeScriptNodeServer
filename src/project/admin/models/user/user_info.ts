@@ -53,6 +53,10 @@ const schema = new Schema(
 		time: {
 			type: Number,
 		},
+		user_level: {
+			type: String,
+			default: "2",
+		},
 		register_system: {
 			type: String,
 			default: null,
